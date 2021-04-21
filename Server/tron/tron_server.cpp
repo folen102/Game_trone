@@ -117,7 +117,7 @@ int main()
 
     const std::size_t size = 30;
 
-    auto port = 3333;
+    auto port = 8001;
 
     bool flag = true;
 
@@ -196,10 +196,51 @@ int main()
                     window.close();
             }
 
-            if (Keyboard::isKeyPressed(Keyboard::Left)) if (p1.dir != 2) p1.dir = 1;
-            if (Keyboard::isKeyPressed(Keyboard::Right)) if (p1.dir != 1)  p1.dir = 2;
-            if (Keyboard::isKeyPressed(Keyboard::Up)) if (p1.dir != 0) p1.dir = 3;
-            if (Keyboard::isKeyPressed(Keyboard::Down)) if (p1.dir != 3) p1.dir = 0;
+            //if (Keyboard::isKeyPressed(Keyboard::Left)) if (p1.dir != 2) p1.dir = 1;
+            //if (Keyboard::isKeyPressed(Keyboard::Right)) if (p1.dir != 1)  p1.dir = 2;
+            //if (Keyboard::isKeyPressed(Keyboard::Up)) if (p1.dir != 0) p1.dir = 3;
+            //if (Keyboard::isKeyPressed(Keyboard::Down)) if (p1.dir != 3) p1.dir = 0;
+
+            if (Keyboard::isKeyPressed(Keyboard::Left))
+            {
+                if (p1.dir != 2)
+                {
+                    p1.dir = 1;
+                    boost::asio::write(socket, boost::asio::buffer("1!"));
+                }
+
+            }
+
+
+            if (Keyboard::isKeyPressed(Keyboard::Right))
+            {
+                if (p1.dir != 1)
+                {
+                    p1.dir = 2;
+                    boost::asio::write(socket, boost::asio::buffer("2!"));
+                }
+            }
+
+
+            if (Keyboard::isKeyPressed(Keyboard::Up))
+            {
+                if (p1.dir != 0)
+                {
+                    p1.dir = 3;
+                    boost::asio::write(socket, boost::asio::buffer("3!"));
+                }
+            }
+
+
+            if (Keyboard::isKeyPressed(Keyboard::Down))
+            {
+                if (p1.dir != 3)
+                {
+                    p1.dir = 0;
+                    boost::asio::write(socket, boost::asio::buffer("0!"));
+                }
+            }
+
 
             //if (Keyboard::isKeyPressed(Keyboard::A)) if (p2.dir != 2) p2.dir = 1;
             //if (Keyboard::isKeyPressed(Keyboard::D)) if (p2.dir != 1)  p2.dir = 2;
