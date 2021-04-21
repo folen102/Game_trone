@@ -1,15 +1,11 @@
-#define BOOST_DATE_TIME_NO_LIB
+п»ї#define BOOST_DATE_TIME_NO_LIB
 
 #include <iostream>
 #include <string>
 #include <thread>
-
 #include <boost/asio.hpp>
-
 #include <SFML/Graphics.hpp>
 #include <time.h>
-
-
 
 using namespace sf;
 
@@ -18,8 +14,6 @@ const int W = 600;
 const int H = 480;
 int speed = 1;
 bool field[W][H] = { 0 };
-
-
 
 struct player
 {
@@ -50,56 +44,36 @@ struct player
 };
 
 
-void read_data_until(boost::asio::ip::tcp::socket& socket, player & p)
+void read_data_until(boost::asio::ip::tcp::socket& socket, player& p)
 {
-
-    boost::asio::streambuf buffer;
-
-    while (boost::asio::read_until(socket, buffer, '!'))
+    while (true)
     {
+        boost::asio::streambuf buffer;
+
+        boost::asio::read_until(socket, buffer, '\n');
+
         std::string message;
 
         std::istream input_stream(&buffer);
 
-        std::getline(input_stream, message, '!');
+        std::getline(input_stream, message, '\n');
 
-        if (message == "0")
+        if (message == "0") if (p.dir != 3) p.dir = 0;
+
+        if (message == "3") if (p.dir != 0) p.dir = 3;
+
+        if (message == "1") if (p.dir != 2) p.dir = 1;
+
+        if (message == "2") if (p.dir != 1) p.dir = 2;
+
+
+        if (message == "END")
         {
-            if(p.dir != 3)
-                p.dir = 0;
+            boost::asio::write(socket, boost::asio::buffer("END\n"));
+            break;
         }
-
-        if (message == "3")
-        {
-            if (p.dir != 0)
-                p.dir = 3;
-        }
-
-        if (message == "1")
-        {
-            if (p.dir != 2)
-                p.dir = 1;
-        }
-
-        if (message == "2")
-        {
-            if (p.dir != 1)
-                p.dir = 2;
-        }
-
-
-        //if (message == "User left the channel")
-        //{
-        //    boost::asio::write(socket, boost::asio::buffer("User left the channel!"));
-        //    break;
-        //}
     }
 }
-
-
-
-
-
 
 
 int main()
@@ -112,9 +86,9 @@ int main()
 
     system("pause");
 
-    std::string raw_ip_address = "127.0.0.1";
+    std::string raw_ip_address = "93.175.8.43";
 
-    auto port = 3333;
+    auto port = 8001;
 
     try
     {
@@ -127,31 +101,21 @@ int main()
 
         socket.connect(endpoint);
 
-        //std::thread Thread(read_data_until, std::ref(socket));
-
-        //прием от другого игрока
-
-
-
-
-
-
-
-
-
-
         srand(time(0));
 
         RenderWindow window(VideoMode(W, H), "The Tron Game! Client");
+
         window.setFramerateLimit(60);
 
         Texture texture;
+
         texture.loadFromFile("background.jpg");
+
         Sprite sBackground(texture);
 
         player p1(Color::Red), p2(Color::Green);
 
-        // 
+        //
         p2.x = 100;
         p2.y = 100;
         p2.dir = 1;
@@ -159,8 +123,6 @@ int main()
         p1.y = 200;
         p1.dir = 2;
         //
-
-
 
         Sprite sprite;
         RenderTexture t;
@@ -171,14 +133,9 @@ int main()
 
         bool Game = 1;
 
-
-        
-
         boost::asio::streambuf buffer1;
 
-        system("pause");
-
-        boost::asio::read_until(socket, buffer1, '!');
+        boost::asio::read_until(socket, buffer1, '\n');
 
         std::thread Thread(read_data_until, std::ref(socket), std::ref(p2));
 
@@ -192,55 +149,44 @@ int main()
             }
 
 
-
             if (Keyboard::isKeyPressed(Keyboard::Left))
             {
-                if (p1.dir != 2)
+                if (p1.dir != 2 && p1.dir != 1)
                 {
                     p1.dir = 1;
-                    boost::asio::write(socket, boost::asio::buffer("1!"));
+                    boost::asio::write(socket, boost::asio::buffer("1\n"));
                 }
-
             }
 
 
             if (Keyboard::isKeyPressed(Keyboard::Right))
             {
-                if (p1.dir != 1)
+                if (p1.dir != 1 && p1.dir != 2)
                 {
                     p1.dir = 2;
-                    boost::asio::write(socket, boost::asio::buffer("2!"));
+                    boost::asio::write(socket, boost::asio::buffer("2\n"));
                 }
             }
 
 
             if (Keyboard::isKeyPressed(Keyboard::Up))
             {
-                if (p1.dir != 0)
+                if (p1.dir != 0 && p1.dir != 3)
                 {
                     p1.dir = 3;
-                    boost::asio::write(socket, boost::asio::buffer("3!"));
+                    boost::asio::write(socket, boost::asio::buffer("3\n"));
                 }
             }
 
 
             if (Keyboard::isKeyPressed(Keyboard::Down))
             {
-                if (p1.dir != 3)
+                if (p1.dir != 3 && p1.dir != 0)
                 {
                     p1.dir = 0;
-                    boost::asio::write(socket, boost::asio::buffer("0!"));
+                    boost::asio::write(socket, boost::asio::buffer("0\n"));
                 }
             }
-
-
-
-            //if (Keyboard::isKeyPressed(Keyboard::A)) if (p2.dir != 2) p2.dir = 1;
-            //if (Keyboard::isKeyPressed(Keyboard::D)) if (p2.dir != 1)  p2.dir = 2;
-            //if (Keyboard::isKeyPressed(Keyboard::W)) if (p2.dir != 0) p2.dir = 3;
-            //if (Keyboard::isKeyPressed(Keyboard::S)) if (p2.dir != 3) p2.dir = 0;
-
-
 
             if (!Game)    continue;
 
@@ -264,11 +210,9 @@ int main()
             window.display();
         }
 
-
-
+        boost::asio::write(socket, boost::asio::buffer("END\n"));
 
     }
-
 
 
     catch (boost::system::system_error& e)
@@ -280,80 +224,7 @@ int main()
         return e.code().value();
     }
 
+    
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-    //srand(time(0));
-
-    //RenderWindow window(VideoMode(W, H), "The Tron Game!");
-    //window.setFramerateLimit(60);
-
-    //Texture texture;
-    //texture.loadFromFile("background.jpg");
-    //Sprite sBackground(texture);
-
-    //player p1(Color::Red), p2(Color::Green); 
-
-    //Sprite sprite;
-    //RenderTexture t;
-    //t.create(W, H);
-    //t.setSmooth(true);
-    //sprite.setTexture(t.getTexture());
-    //t.clear();  t.draw(sBackground);
-
-    //bool Game=1;
-
-    //while (window.isOpen())
-    //{
-    //    Event e;
-    //    while (window.pollEvent(e))
-    //    {
-    //        if (e.type == Event::Closed)
-    //            window.close();
-    //    }
-
-    //    if (Keyboard::isKeyPressed(Keyboard::Left)) if (p1.dir!=2) p1.dir=1;
-    //    if (Keyboard::isKeyPressed(Keyboard::Right)) if (p1.dir!=1)  p1.dir=2;
-    //    if (Keyboard::isKeyPressed(Keyboard::Up)) if (p1.dir!=0) p1.dir=3;
-    //    if (Keyboard::isKeyPressed(Keyboard::Down)) if (p1.dir!=3) p1.dir=0;
-
-    //    if (Keyboard::isKeyPressed(Keyboard::A)) if (p2.dir!=2) p2.dir=1;
-    //    if (Keyboard::isKeyPressed(Keyboard::D)) if (p2.dir!=1)  p2.dir=2;
-    //    if (Keyboard::isKeyPressed(Keyboard::W)) if (p2.dir!=0) p2.dir=3;
-    //    if (Keyboard::isKeyPressed(Keyboard::S)) if (p2.dir!=3) p2.dir=0;
-
-    //    if (!Game)    continue;
-
-    //    for(int i=0;i<speed;i++)
-    //    {
-    //        p1.tick(); p2.tick();
-    //        if (field[p1.x][p1.y]==1) Game=0; 
-    //        if (field[p2.x][p2.y]==1) Game=0;
-    //        field[p1.x][p1.y]=1; 
-    //        field[p2.x][p2.y]=1;
-    //
-    //        CircleShape c(3);
-    //        c.setPosition(p1.x,p1.y); c.setFillColor(p1.color);    t.draw(c);
-    //        c.setPosition(p2.x,p2.y); c.setFillColor(p2.color);    t.draw(c);
-    //        t.display();    
-    //    }
-
-    //   ////// draw  ///////
-    //    window.clear();
-    //    window.draw(sprite);
-    //    window.display();
-    //}
-
-    return 0;
+    return EXIT_SUCCESS;
 }
