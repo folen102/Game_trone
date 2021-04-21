@@ -4,7 +4,7 @@ using namespace sf;
 
 const int W=600;
 const int H=480;
-int speed = 4;
+int speed = 1;
 bool field[W][H]={0};
 
 struct player
